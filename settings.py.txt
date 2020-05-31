@@ -1,0 +1,7 @@
+from requests_oauthlib import OAuth1Session
+
+# Set up OAuth against Telldus Live API
+telldus_user = OAuth1Session('',
+                    client_secret='',
+                    resource_owner_key='',
+                    resource_owner_secret='')
