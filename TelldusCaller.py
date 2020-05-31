@@ -3,6 +3,14 @@ import requests
 from datetime import datetime
 from settings import telldus_user
 
+# Base URL for the API
+base_url = "https://api.telldus.com/json"
+
+'''
+ SensorObject with default data in case of empty or invalid response.
+ Note that LastUpdated-values of all sorts are a Unix timestamp and might 
+ need some adjusting to display correct values.
+'''
 class SensorObject():
     sensorid = 0
     clientName = ''
@@ -25,9 +33,12 @@ class SensorObject():
     timezoneOffset = 0
 
 
-# Create a function for collecting data
+''' 
+ Function for collecting a list of sensors connected to your Telldus account and fetch latest available information from them.
+ This function returns a list of SensorObjects to the user.
+'''
 def fetchSensorList():
-    telldus_url = 'https://api.telldus.com/json/sensors/list'
+    telldus_url = '{}/sensors/list'.format(base_url)
     telldus_call = telldus_user.get(telldus_url)
     result = json.loads(telldus_call.text)
     sensor_list = []
@@ -36,8 +47,12 @@ def fetchSensorList():
 
     return sensor_list
 
+'''
+ Function for collecting the latest available information from a specified Telldus sensor ID.
+ Returns a SensorObject containing the information to the user
+'''
 def fetchSensorData(sensorId):
-    telldus_url = 'https://api.telldus.com/json/sensor/info?id={}'.format(sensorId)
+    telldus_url = '{}/sensor/info?id={}'.format(base_url, sensorId)
 
     telldus_call = telldus_user.get(telldus_url)
 
@@ -75,9 +90,10 @@ def fetchSensorData(sensorId):
 
     return result
 
+'''
+ If file run as standalone, return sample data to user
+'''
 if __name__ == '__main__':
-    #fetchSensorData('1533382647')
-    #fetchSensorData('1533382617')
     result = fetchSensorList()
     for res in result:
         print()
