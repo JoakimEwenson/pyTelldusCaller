@@ -1,64 +1,78 @@
 from TelldusCaller import fetchSensorList, fetchSensorData
-from sqlalchemy import create_engine, Column, Integer, Float, String, Boolean
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from os import path
+from sqlite3 import Error
+import sqlite3
+import os.path
 
-# Set up SQLAlchemy
-Engine = create_engine('sqlite:///sensordata.db', echo=True)
-Base = declarative_base()
-Session = sessionmaker(bind=Engine)
+db_file = 'sensordata.db'
 
-class SensorDataRow(Base):
-    __tablename__ = 'sensordata'
+sql_create_sensordata_table = """ CREATE TABLE IF NOT EXISTS sensordata (
+                                    id integer PRIMARY KEY,
+                                    sensorid integer NOT NULL,
+                                    clientName text,
+                                    name text,
+                                    lastUpdated text,
+                                    tempValue real,
+                                    tempLastUpdated text,
+                                    tempMaxValue real,
+                                    tempMaxTime text,
+                                    tempMinValue real,
+                                    tempMinTime text,
+                                    humidityValue real,
+                                    humidityLastUpdated text,
+                                    humidityMaxValue real,
+                                    humidityMaxTime text,
+                                    humidityMinValue real,
+                                    humidityMinTime text,
+                                    timezoneOffset integer
+                                ); """
 
-    id = Column(Integer, primary_key=True)
-    sensorid = Column(String)
-    clientName = Column(String)
-    name = Column(String)
-    lastUpdated = Column(String)
-    ignored = Column(Boolean)
-    editable = Column(Boolean)
-    tempValue = Column(Float)
-    tempLastUpdated = Column(String)
-    tempMaxValue = Column(Float)
-    tempMaxTime = Column(String)
-    tempMinValue = Column(Float)
-    tempMinTime = Column(String)
-    humidityValue = Column(Float)
-    humidityLastUpdated = Column(String)
-    humidityMaxValue = Column(Float)
-    humidityMaxTime = Column(String)
-    humidityMinValue = Column(Float)
-    humidityMinTime = Column(String)
-    timezoneOffset = Column(String)
+def create_connection(db_file):
+    """ Create a database connection to the SQLite database
+        specified by db_file
+    :param db_file: database file
+    :return Connection object or None
+    """
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+        return conn
+    except Error as e:
+        print(e)
 
-session = Session()
+    return conn
 
-# Fetch sensor data
-result = fetchSensorList()
+def create_table(conn, create_table_sql):
+    """ Create a table from the create_table_sql statement
+    :param conn: Connection object
+    :param create_table_sql: a CREATE TABLE statement
+    :return:
+    """
+    try:
+        c = conn.cursor()
+        c.execute(create_table_sql)
+    except Error as e:
+        print(e)
 
-for r in result:
-    row = SensorDataRow(
-        sensorid=r.sensorid,
-        clientName=r.clientName,
-        name=r.name,
-        lastUpdated=r.lastUpdated,
-        ignored=r.ignored,
-        editable=r.editable,
-        tempValue=r.tempValue,
-        tempLastUpdated=r.tempLastUpdated,
-        tempMaxValue=r.tempMaxValue,
-        tempMaxTime=r.tempMaxTime,
-        tempMinValue=r.tempMinValue,
-        humidityValue=r.humidityValue,
-        humidityLastUpdated=r.humidityLastUpdated,
-        humidityMaxValue=r.humidityMaxValue,
-        humidityMaxTime=r.humidityMaxTime,
-        humidityMinValue=r.humidityMinValue,
-        humidityMinTime=r.humidityMinTime,
-        timezoneOffset=r.timezoneOffset,
-    )
-    session.add(row)
+def insert_sensordata(conn, data):
+    c = conn.cursor()
+    for row in data:
+        c.execute(f"INSERT INTO sensordata(sensorid,clientName,name,lastUpdated,tempValue,tempLastUpdated,tempMaxValue,tempMaxTime,tempMinValue,tempMinTime,humidityValue,humidityLastUpdated,humidityMaxValue,humidityMaxTime,humidityMinValue,humidityMinTime,timezoneOffset) VALUES('{row.sensorid}','{row.clientName}','{row.name}','{row.lastUpdated}','{row.tempValue}','{row.tempLastUpdated}','{row.tempMaxValue}','{row.tempMaxTime}','{row.tempMinValue}','{row.tempMinTime}','{row.humidityValue}','{row.humidityLastUpdated}','{row.humidityMaxValue}','{row.humidityMaxTime}','{row.humidityMinValue}','{row.humidityMinTime}','{row.timezoneOffset}')")
+        conn.commit()
 
-session.commit()
-    
+def first_run():
+    conn = create_connection(db_file)
+    if conn is not None:
+        create_table(conn, sql_create_sensordata_table)
+    else:
+        print('Error, could not connect to database')
+
+if __name__ == '__main__':
+    if (path.exists(db_file) == False):
+        first_run()
+    else:
+        conn = create_connection(db_file)
+
+    # Fetch sensor data
+    result = fetchSensorList(True)
+    insert_sensordata(conn, result)
