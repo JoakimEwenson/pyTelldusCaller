@@ -4,7 +4,7 @@ from datetime import datetime
 from settings import telldus_user
 
 # Base URL for the API
-base_url = "https://api.telldus.com/json"
+base_url = "https://pa-api.telldus.com/json"
 
 '''
  SensorObject with default data in case of empty or invalid response.
