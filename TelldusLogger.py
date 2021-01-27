@@ -1,6 +1,8 @@
 from TelldusCaller import fetch_sensor_list, fetch_sensor_data
 from os import path
 from sqlite3 import Error
+from datetime import datetime
+import time
 import sqlite3
 import os.path
 
@@ -75,5 +77,12 @@ if __name__ == '__main__':
         conn = create_connection(db_file)
 
     # Fetch sensor data
-    result = fetch_sensor_list(True)
-    insert_sensordata(conn, result)
+    while True:
+        try:
+            result = fetch_sensor_list(True)
+            insert_sensordata(conn, result)
+            print(f"Successful fetch at {datetime.now()}")
+        except Error as error:
+            print(error)
+        # Sleep for 60 s and try again
+        time.sleep(300)
