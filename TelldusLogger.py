@@ -84,5 +84,5 @@ if __name__ == '__main__':
             print(f"Successful fetch at {datetime.now()}")
         except Error as error:
             print(error)
-        # Sleep for 60 s and try again
-        time.sleep(300)
+        # Sleep for 600 (10 m) s and fetch again
+        time.sleep(600)
