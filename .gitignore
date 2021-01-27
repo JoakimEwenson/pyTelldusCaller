@@ -122,3 +122,4 @@ dmypy.json
 settings.py
 sensordata.db
 .vscode/settings.json
+sensordata.db-journal
